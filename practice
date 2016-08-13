@@ -1,0 +1,434 @@
+(import (c211 color))
+(import (c211 image))
+#|
+(define bright
+  (lambda (img n)
+    (image-map
+      (lambda (x)
+        (color
+         (unless (>= (color-ref x 'red) 255)
+          (+ n (color-ref x 'red)))
+         (unless (>= (color-ref x 'green) 255)
+          (+ n (color-ref x 'green)))
+         (unless (>= (color-ref x 'blue) 255)
+          (+ n (color-ref x 'blue)))))
+    img)))
+
+(define bright
+  (lambda (img n)
+    (image-map
+      (lambda (x)
+         (color
+           (if (not (>= (color-ref x 'red) 255))
+                (+ n (color-ref x 'red))
+                (color-ref x 'red))
+           (if (not (>= (color-ref x 'green) 255))
+                (+ n (color-ref x 'green))
+                (color-ref x 'green))
+           (if (not (>= (color-ref x 'blue) 255))
+                (+ n (color-ref x 'blue))
+                (color-ref x 'blue))
+           ))
+      img)))
+|#
+
+
+(define brighten
+  (lambda (img n)
+    (image-map
+      (lambda (x)
+         (color
+           (if (>= (+ n (color-ref x 'red)) 255)
+               255
+                (+ n (color-ref x 'red)))
+           (if (>= (+ n (color-ref x 'green)) 255)
+               255
+                (+ n (color-ref x 'green)))
+           (if (>= (+ n (color-ref x 'blue)) 255)
+               255
+                (+ n (color-ref x 'blue)))
+           ))
+      img)))
+
+(define darken
+  (lambda (img n)
+    (image-map
+      (lambda (x)
+         (color
+           (if (<= (- (color-ref x 'red) n) 0)
+               0
+                (- (color-ref x 'red) n))
+           (if (<= (- (color-ref x 'green) n) 0)
+               0
+                (- (color-ref x 'green) n))
+           (if (<= (- (color-ref x 'blue) n) 0)
+               0
+                (- (color-ref x 'blue) n))
+
+           ))
+      img)))
+
+(define ls1 '(1 2 3 4 5))
+#|
+(define snowplow-help              ;;; afterwards, try to do this in one proc, using let etc.
+  (lambda (ls snowpile)
+    (cond
+      [(null? ls) snowpile]
+      [(equal? (car ls) 'snow)
+       (snowplow-help (cdr ls) (cons 'snow snowpile))]
+      (else
+       (cons (car ls) (snowplow-help (cdr ls) snowpile))))))
+
+(define snowplow
+  (lambda (ls)
+    (snowplow-help ls '())))
+|#
+
+#|
+(define snowplow
+  (lambda (ls)
+    (let ((snowpile '()))
+    (cond
+      [(null? ls) snowpile]
+      [(equal? (car ls) 'snow)
+       (and (snowplow (cdr ls)) (cons 'snow snowpile))]
+      (else
+       (cons (car ls) (snowplow (cdr ls) snowpile)))))))
+
+|#
+
+#|
+(define snowplow-help
+  (lambda (ls snowpile)
+    (cond
+      [(null? ls) snowpile]
+      [(equal? (car ls) 'snow)
+       (snowplow-help (cdr ls) (cons 'snow snowpile))]
+      (else
+       (cons (car ls) (snowplow-help (cdr ls) snowpile))))))
+
+(define snowplow
+  (lambda (ls)
+    (define snowplow-help
+      (lambda (ls snowpile)
+       (cond
+        [(null? ls) snowpile]
+        [(equal? (car ls) 'snow)
+         (snowplow-help (cdr ls) (cons 'snow snowpile))]
+        (else
+         (cons (car ls) (snowplow-help (cdr ls) snowpile))))))
+    (snowplow-help ls '())))
+|#
+
+(define snowplow
+  (lambda (ls)
+    (let ((snowplow-help
+      (lambda (ls snowpile)
+       (cond
+        [(null? ls) snowpile]
+        [(equal? (car ls) 'snow)
+         (snowplow-help (cdr ls) (cons 'snow snowpile))]
+        (else
+         (cons (car ls) (snowplow-help (cdr ls) snowpile)))))))
+    (snowplow-help ls '()))))
+
+(let separate
+               ((numbers '(3 -2 1 6 -5))
+                (nonneg '())
+                (neg '()))
+            (cond ((null? numbers)
+                   (list nonneg neg))
+                  ((>= (car numbers) 0)
+                   (separate (cdr numbers)
+                         (cons (car numbers) nonneg)
+                         neg))
+                  (else
+                   (separate (cdr numbers)
+                         nonneg
+                         (cons (car numbers) neg)))))
+
+
+
+
+
+
+
+
+#|
+(define u-lt?
+  (lambda (ls1 ls2)
+    (or
+      (and (null? ls1) (not (null? ls2)))
+      (and
+         (not (null? ls1)) (not (null? ls2))
+         (u-lt? (cdr ls1) (cdr ls2))))))
+
+(define u-min
+  (lambda (ls1 ls2)
+    (if
+    (u-lt? ls1 ls2)
+        ls1
+        ls2)))
+|#
+
+(define u-min
+  (lambda (ls1 ls2)
+    (let ((u-lt?
+      (lambda (ls1 ls2)
+    (or
+      (and (null? ls1) (not (null? ls2)))
+      (and
+         (not (null? ls1)) (not (null? ls2))
+         (u-lt? (cdr ls1) (cdr ls2)))))))
+      (if
+    (u-lt? ls1 ls2)
+        ls1
+        ls2))))
+
+
+
+
+
+
+
+
+#|
+(define single-grain-toss
+  (lambda ()
+    (+ 1 (random 64))))
+
+(define grains-toss
+  (lambda (n)
+    (cond
+      [(zero? n) '()]
+      (else
+       (cons (single-grain-toss)
+               (grains-toss (sub1 n)))))))
+|#
+
+(define grains-toss3
+  (lambda (n)
+    (define (single-grain-toss3) (+ 1 (random 64)))
+    (cond
+      [(zero? n) '()]
+      (else
+       (cons (single-grain-toss3)
+               (grains-toss3 (sub1 n)))))))
+
+(define gen-rangea
+  (lambda (bot top)
+    (define gen-rangea-help
+      (lambda (bot top)
+        (if (= bot top)
+            '()
+          (cons (add1 bot) (gen-rangea-help (add1 bot) top)))))
+    (gen-rangea-help (sub1 bot) top)))
+
+
+(define gen-rangeb
+  (lambda (bot top)
+    (letrec ((gen-rangeb-help
+           (lambda (bot top)
+        (if (= bot top)
+            '()
+          (cons (add1 bot) (gen-rangeb-help (add1 bot) top))))))
+    (gen-rangeb-help (sub1 bot) top))))
+
+(define gen-rangec
+  (lambda (bot top)
+    (let loop ((bot (sub1 bot)) (top top))
+        (if (= bot top)
+            '()
+          (cons (add1 bot) (loop (add1 bot) top))))))
+
+(define list-position
+  (lambda (o l)
+    (let loop ((i 0) (l l))
+      (if (null? l) #f
+          (if (eqv? (car l) o) i
+              (loop (+ i 1) (cdr l)))))))
+
+(define snowplowb
+  (lambda (ls)
+    (let loop ((ls ls) (acc '()))
+      (cond
+        [(null? ls) acc]
+        [(equal? (car ls) 'snow)
+         (loop (cdr ls) (cons 'snow acc))]
+        (else
+         (cons (car ls) (loop (cdr ls) acc)))))))
+
+(define grains-tossb
+  (lambda (n)
+    (let loop ((n n))
+      (if (zero? n)
+          '()
+          (cons (+ 1 (random 64)) (loop (sub1 n)))))))
+
+(define empty-square?
+  (lambda (n ls)
+    (or
+        (null? ls)
+        (and
+             (not (equal? n (car ls)))
+             (empty-square? n (cdr ls))))))
+
+(define empty-squaresb
+  (lambda (ls)
+    (let loop ((loopls ls)
+               (checkerboard (gen-rangec 1 64))
+               )
+      (cond
+        [(null? loopls) checkerboard]
+        [(equal? (car loopls) (car checkerboard))
+         (loop (cdr loopls) (cdr checkerboard))]
+        (else
+         (cons (car checkerboard) (loop loopls (cdr checkerboard))))))))
+
+(define u-doublea
+  (lambda (ls)
+    (if (null? ls) '()
+        (cons 'l (cons 'l (u-doublea (cdr ls)))))))
+
+(define u-pow-two-helpa
+  (lambda (ls1 ls2)
+    (if
+      (null? ls2)
+        ls1
+        (u-pow-two-helpa (u-double ls1) (cdr ls2)))))
+
+(define u-pow-twoa
+  (lambda (ls)
+    (if (null? ls) '(l)
+    (u-pow-two-helpa '(l l) (cdr ls)))))
+
+(define u-pow-twob
+  (lambda (ls)
+    (let loop ((ls1 '(l l)) (ls2 (cdr ls)))
+      (if (null? ls2)
+          ls1
+          (loop (u-doublea ls1) (cdr ls2))))))
+#|
+(define rotate
+  (lambda (ls)
+    (letrec ([allbutlast
+              (lambda (ls)
+            (if (null? (cdr ls))
+                '()
+                (cons (car ls) (allbutlast (cdr ls)))))]
+          [last
+             (lambda (ls)
+            (if (null? (cdr ls))
+                 (cdr ls)
+                 (last (cdr ls))))])
+
+         (cons last allbutlast))))
+
+
+(define rotate
+  (lambda (ls)
+    (let loop ([ls ls] [last (if (null? (cdr ls)) (cdr ls) (last (cdr ls)))])
+      (if (null? (cdr ls))
+          (cons last (rotate ls))
+          (cons (car ls) (loop (cdr ls) last))))))
+              |#
+#|
+(define allbutlast
+  (lambda (ls)
+    (if (null? (cdr ls)) '() (cons (car ls) (allbutlast (cdr ls))))))
+
+(define last
+  (lambda (ls)
+    (if (null? (cdr ls)) (car ls) (last (cdr ls)))))
+
+(define rotate
+  (lambda (ls)
+  (cons (last ls) (allbutlast ls))))
+|#
+
+(define rotate1
+  (lambda (ls)
+    (let loop ([loopls ls]
+               [allbutlast (lambda (ls)
+           (if (null? (cdr ls)) '() (cons (car ls) (allbutlast (cdr ls)))))])
+
+      (if (null? (cdr loopls))
+          (cons (car loopls) (allbutlast ls))
+      (loop (cdr loopls) allbutlast)))))
+
+(define list-max1
+  (lambda (ls)
+    (cond
+      [(null? (cdr ls)) (car ls)]
+      [(> (car ls) (cadr ls))
+       (list-max1 (cons (car ls) (cddr ls)))]
+      (else
+       (list-max1 (cdr ls))))))
+
+(define list-max2
+  (lambda (ls)
+    (cond
+      [(null? (cdr ls)) (car ls)]
+      [(> (car ls) (list-max2 (cdr ls))) (car ls)]
+      (else
+       (list-max2 (cdr ls))))))
+
+(define list-max3
+  (lambda (ls)
+    (if (null? (cdr ls)) (car ls)
+        (let ([temp (list-max3 (cdr ls))])
+          (if (> (car ls) temp)
+              (car ls)
+              temp)))))
+#|
+(define split-equally-help
+  (lambda (n xvar acc)
+    (cond
+      [(< xvar (/ 1 n)) (cons 0 acc)]
+      (else
+       (split-equally-help
+         n (- xvar (/ 1.0 n)) (cons xvar acc))))))
+
+(define split-equally
+  (lambda (n)
+    (split-equally-help n 1 '())))
+|#
+
+(define split-equally1
+  (lambda (n)
+  (let loop ([desc 1] [acc '()])
+    (if (< desc (/ 1.0 n)) (cons 0 acc)
+        (loop (- desc (/ 1.0 n)) (cons desc acc))))))
+#|
+(define area-circle-helper
+  (lambda (n partitionls acc)
+    (cond
+      [(null? (cdr partitionls)) acc]
+      (else
+         (area-circle-helper n (cdr partitionls)
+           (+
+             (area-trapezoid
+               (circle-y
+                 (car partitionls))
+               (circle-y (cadr partitionls))
+               (/ 1 n))
+             acc))))))
+
+(define area-circle
+  (lambda (n)
+    (if (zero? n) 0
+    (* 4 (area-circle-helper n (split-equally n) 0)))))
+|#
+
+(define area-circle1
+  (lambda (n)
+    (if (zero? n) 0
+      (* 4 (let loop ([ls (split-equally n)] [acc 0])
+          (if (null? (cdr ls)) acc
+              (loop (cdr ls)
+                (+
+                  (area-trapezoid
+                    (circle-y (car ls))
+                    (circle-y (cadr ls))
+                    (/ 1 n))
+             acc))))))))

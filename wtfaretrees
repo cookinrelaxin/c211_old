@@ -1,0 +1,239 @@
+
+(define deal
+  (lambda (ls)
+    (cond
+      [(null? ls) '()]
+      (else
+      (list (cons (car ls) (car (deal (cdr ls))))
+            (cdr (deal (cdr ls))))))))
+
+(define deal1
+  (lambda (ls)
+    (let loop ((ls ls))
+      (cond
+        [(null? ls) '()]
+        [(null? (cdr ls)) (list (car ls))]
+        (else
+          (cons (car ls) (loop (cddr ls))))))
+      (list (loop ls) (loop (cdr ls)))))
+
+(define deal1side
+  (lambda (ls)
+    (cond
+        [(null? ls) '()]
+        [(null? (cdr ls)) (list (car ls))]
+        (else
+          (cons (car ls) (deal1side (cddr ls)))))))
+
+(define deal2
+  (lambda (ls)
+    (list (deal1side ls) (deal1side (cdr ls)))))
+
+(define deal3
+  (lambda (ls)
+    (letrec ((help
+           (lambda (ls)
+      (cond
+        [(null? ls) '()]
+        [(null? (cdr ls)) (list (car ls))]
+        (else
+          (cons (car ls) (help (cddr ls))))))))
+      (list (help ls) (help (cdr ls))))))
+
+ ;;; how to do it as it was done in lecture?
+
+(define insert-in-order
+  (lambda (x ls)
+    (let loop ((l ls))
+      (cond
+        [(null? l) (cons x l)]
+        [(> (car l) x) (cons x l)]
+        (else
+         (cons (car l) (loop (cdr l))))))))
+
+
+(define rpn->tree1
+  (lambda (rpnexpr)
+   (let ((c 0))
+    (let loop ((l rpnexpr) (s '()) (c 0))
+     (cond
+      [(null? l) '()]
+      [(zero? c) (cons 'tree (loop l s (add1 c)))]
+      [(number? (car l)) (loop (cdr l) (cons (car l) s) c)]
+      (else (cons (car l)
+              (cons (list 'leaf (cadr s))
+                (cons (list 'leaf (car s)) (loop (cdr l) s c))))))))))
+
+(define rpn->tree2
+  (lambda (rpnexpr)
+   (let ((c 0))
+    (let loop ((l rpnexpr) (s '()) (c 0))
+     (cond
+      [(null? l) '()]
+      [(zero? c) (cons 'tree (loop l s (add1 c)))]
+      [(number? (car l)) (loop (cdr l) (cons (car l) s) c)]
+      (else (cons (car l)
+              (cons (list 'leaf (cadr s))
+                (cons (list 'leaf (car s))
+                  (loop (cdr l) (cons (list (car l) (car s) (cadr s)) (cddr s))
+                                  c))))))))))
+
+(define rpn->tree3
+  (lambda (rpnexpr)
+   (let ((c 0))
+    (let loop ((l rpnexpr) (s '()) (c 0))
+     (cond
+      [(null? l) '()]
+      [(zero? c) (cons 'tree (loop l s (add1 c)))]
+      [(number? (car l)) (loop (cdr l) (cons (car l) s) c)]
+      (else
+       (cons (list
+               (car l)
+               (list 'leaf (cadr s))
+               (list 'leaf (car s)))
+                  (loop (cdr l) (cons (list (car l) (car s) (cadr s)) (cddr s))
+                                  c))))))))
+
+(define rpn->tree4
+  (lambda (rpnexpr)
+   (let ((c 0))
+    (let loop ((l rpnexpr) (s '()) (c 0))
+     (cond
+      [(null? l) s]
+      [(zero? c) (cons 'tree (loop l s (add1 c)))]
+      [(number? (car l)) (loop (cdr l) (cons (car l) s) c)]
+      (else
+       (loop (cdr l)
+         (cons (list 'leaf (caddr s))
+           (list
+                     (car l)
+                     (list 'leaf (cadr s))
+                     (list 'leaf (car s))))
+         c)))))))
+
+
+#|
+(rpn->tree3 '(3 4 2 * 1 5 - 2 3 + + / +))
+
+((leaf 3))
+
+((leaf 4) (leaf 3))     ::lets try backwards list
+
+((leaf 2) (leaf 4) (leaf 3))
+
+((* (leaf 2) (leaf 4)) (leaf 3))
+
+((leaf 1) (* (leaf 2) (leaf 4)) (leaf 3))
+
+((leaf 5) (leaf 1) (* (leaf 2) (leaf 4)) (leaf 3))
+
+((- (leaf 5) (leaf 1)) (* (leaf 2) (leaf 4)) (leaf 3))
+
+((leaf 2) (- (leaf 5) (leaf 1)) (* (leaf 2) (leaf 4)) (leaf 3))
+
+((leaf 3) (leaf 2) (- (leaf 5) (leaf 1)) (* (leaf 2) (leaf 4)) (leaf 3))
+
+((+ (leaf 3) (leaf 2)) (- (leaf 5) (leaf 1)) (* (leaf 2) (leaf 4)) (leaf 3))
+
+((+ (+ (leaf 3) (leaf 2)) (- (leaf 5) (leaf 1))) (* (leaf 2) (leaf 4)) (leaf 3))
+
+((/ (+ (+ (leaf 3) (leaf 2)) (- (leaf 5) (leaf 1))) (* (leaf 2) (leaf 4)) (leaf 3))
+
+
+
+
+(tree (+ (leaf 3)
+        (/ (* (leaf 4) (leaf 2))
+          (+ (- (leaf 1) (leaf 5)) (+ (leaf 2) (leaf 3))))))
+
+
+
+
+
+ (* (leaf 4) (leaf 2))
+
+ (- (leaf 1) (leaf 5))
+
+ (+ (leaf 2) (leaf 3))
+
+
+
+
+
+
+ (tree (+ (leaf 3)
+        (/ (* (leaf 4) (leaf 2))
+          (+ (- (leaf 1) (leaf 5)) (+ (leaf 2) (leaf 3))))))
+
+; desired answer
+
+
+
+
+
+ |#
+
+
+
+(define rpn->tree5    ;; we have a winner, its pretty good. not perfect. doesnt work with constants
+  (lambda (rpnexpr)
+   (let ((c 0))
+    (let loop ((l rpnexpr) (s '()) (c 0))
+     (cond
+      [(null? l) s]
+      [(zero? c) (cons 'tree (loop l s (add1 c)))]
+      [(number? (car l)) (loop (cdr l) (cons (list 'leaf (car l)) s) c)]
+      (else
+       (loop (cdr l)
+         (cons (list (car l) (cadr s) (car s)) (cddr s))
+         c)))))))
+
+;; 188 is the key line. when the car of l is an operator, the order of the first
+;; two elements are reversed, and put behind the operator
+
+
+(define tree-calc
+  (lambda (ls)
+    (cond
+      [(null? ls) ls]
+      [(and (list? (car ls)) (equal? (caar ls) 'leaf))
+                           (cons (cadar ls) (tree-calc (cdr ls)))]
+      [(not (or (equal? 'tree (car ls)) (integer? (car ls)) (list? (car ls))))
+       (cons (car ls) (tree-calc (cdr ls)))]
+      [(not (null? (cdr ls))) (tree-calc (cdr ls))]
+     (else
+     (tree-calc (car ls))))))
+
+#|
+
+(+ (leaf 3)
+       (/ (* (leaf 4) (leaf 2))
+          (+ (- (leaf 1) (leaf 5)) (+ (leaf 2) (leaf 3))))))   '()
+
+((leaf 3)
+  (/ (* (leaf 4) (leaf 2))
+     (+ (- (leaf 1) (leaf 5)) (+ (leaf 2) (leaf 3)))))         '(+)
+
+(/ (* (leaf 4) (leaf 2))
+   (+ (- (leaf 1) (leaf 5)) (+ (leaf 2) (leaf 3))))
+
+(/ (* (leaf 4) (leaf 2))
+   (+ (- (leaf 1) (leaf 5)) (+ (leaf 2) (leaf 3)))) '(+ 3)
+
+|#
+(define rpn->tree6
+  (lambda (rpnexpr)
+   (let ((c 0))
+    (let loop ((l rpnexpr) (s '()) (c 0))
+     (cond
+      [(null? l) s]
+      [(zero? c) (cons 'tree (loop l s (add1 c)))]
+      [(number? (car l)) (loop (cdr l) (cons (car l) s) c)]
+      (else
+       (loop (cdr l)
+         (cons (list (car l) (cadr s) (car s)) (cddr s))
+         c)))))))
+
+(define tree-calc-easy
+  (lambda (ls)
+    (eval (cadr ls))))

@@ -1,0 +1,63 @@
+(import (c211 tree))
+(define tr1
+  (tree 144
+    (tree 36 (leaf 9) (leaf 4))
+    (leaf 4)))
+
+
+
+(define count-children
+  (lambda (tr)
+    (cond
+     [(leaf? tr) 0]
+     [(or
+          (and (empty-tree? (left-subtree tr)) (not (empty-tree? (right-subtree tr))))
+          (and (empty-tree? (right-subtree tr)) (not (empty-tree? (left-subtree tr)))))
+      1]
+      (else 2))))
+#|
+(define factor-tree?cond
+  (lambda (tr)
+    (cond
+      [(or (empty-tree? tr)
+           (and (leaf? tr)
+                (and (number? (root-value tr))
+                     (> (root-value tr) 1)))) #t]
+      [(or (= (count-children tr) 0) (= (count-children tr) 1)) #f]
+      (else
+         (if (= (root-value tr)
+               (* (root-value
+                    (left-subtree tr))
+                  (root-value
+                    (right-subtree tr))))
+                 (if
+                  (and
+                     (factor-tree?cond (left-subtree tr))
+                     (factor-tree?cond (right-subtree tr)))
+                   #t #f))))))
+|#
+(define factor-tree?
+  (lambda (tr)
+   (or
+
+     (empty-tree? tr)
+
+     (and
+
+      (not (or (= (count-children tr) 0) (= (count-children tr) 1))
+
+      (or
+
+        (and (leaf? tr)
+             (and
+               (number? (root-value tr))
+               (> (root-value tr) 1)))
+
+        (and
+          (= (root-value tr)
+               (*
+                 (root-value (left-subtree tr))
+                  (root-value (right-subtree tr))))
+
+          (factor-tree? (left-subtree tr))
+          (factor-tree? (right-subtree tr)))))))))

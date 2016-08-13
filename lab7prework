@@ -1,0 +1,55 @@
+(import (c211 color))
+(import (c211 image))
+
+
+(define nest
+  (lambda (ls)
+  (map list ls)))
+
+(define unnest
+  (lambda (ls)
+    (map car ls)))
+
+(define reciprocals
+  (lambda (ls)
+    (map
+      (lambda (n)
+        (if (zero? n)
+            '#f
+            (/ 1 n)))
+      ls)))
+
+(define flip-bits
+  (lambda (ls)
+    (map
+      (lambda (bit)
+        (if (or (equal? bit 0) (equal? bit 1))
+            (if (equal? bit 1)
+                0
+                1)
+            '#f))
+      ls)))
+
+
+
+(define swapb
+  (lambda (s1 s2 ls)
+    (cond
+     [(null? ls) ls]
+     [(equal? s1 (car ls)) (cons s2 (swapb s1 s2 (cdr ls)))]
+     [(equal? s2 (car ls)) (cons s1 (swapb s1 s2 (cdr ls)))]
+      (else (cons (car ls) (swapb s1 s2 (cdr ls)))))))
+
+#|(define swap
+  (lambda (s1 s2 ls)
+    (map
+      (lambda (s1 s2 x)
+        (if (equal? s1 x) s2
+            x)
+        (if (equal? s2 x) s1
+            x))
+      s1 s2 ls)))
+|#
+
+(define splatter
+  (lambda (img)

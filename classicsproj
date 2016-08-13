@@ -1,0 +1,371 @@
+
+#|
+(call-with-input-file "livy.txt"
+  (lambda (p)
+    (let f ((x (read p)))
+      (if (eof-object? x)
+          '()
+          (cons x (f (read p)))))))
+
+(define livy (open-input-file "livy.txt"))
+
+(define close-livy
+  (close-input-port (open-input-file "livy.txt")))
+
+
+
+(define call-with-input-file
+  (lambda (filename proc)
+    (let ((p (open-input-file filename)))
+      (let ((v (proc p)))
+        (close-input-port p)
+        v))))
+|#
+#|
+(define greet
+  (let ((o (open-output-file "greeting1.txt")))
+    (display "hello" o)
+    (write-char #\space o)
+    (display 'world o)
+    (newline o)
+    (close-output-port o)))
+
+(define hel
+  (call-with-input-file "greeting.txt"
+    (lambda (i)
+      (let* ((a (read-char i))
+             (b (read-char i))
+             (c (read-char i)))
+        (list a b c)))))
+
+
+(define transcribe
+  (call-with-input-file "livy.txt"
+    (lambda (text)
+      (let ((a (read livy))
+            (b (read livy)))
+        (if (eof-object? b)
+            '()
+        (cons a (transcribe (read text))))))))
+
+|#
+#|
+(call-with-input-file "livy.txt"
+  (lambda (input-port)
+    (let loop ((x (read input-port)))
+      (if (eof-object? x)
+          '()
+         (begin
+          (list x '())
+            (loop (read input-port))))))))
+
+
+(define index-livy
+   (call-with-input-file "livy.txt"
+    (lambda (input-port)
+     (let loop ((x (read input-port)) (count 0))
+      (if (eof-object? x)
+          '()
+         (begin
+          (cons (list count x)
+            (loop (read input-port) (add1 count)))))))))
+
+(define search
+  (lambda (query index)
+    (let loop ([q query] [ls index] [acc '()])
+     (cond
+      [(null? (cdr ls))
+       (if (null? acc)
+        "Query not found"
+           acc)]
+      [(equal? q (cadar ls))
+            (loop q (cdr ls) (cons (caar ls) acc))]
+       (else
+        (loop q (cdr ls) acc))))))
+
+
+(define search1
+  (lambda (query index)
+    (let loop ([q query] [ls index] [tick 0])
+     (cond
+      [(null? (cdr ls))
+       (if (zero? tick)
+        "Query not found"
+           '())]
+      [(equal? q (cadar ls))
+            (cons (caar ls) (loop q (cdr ls) (add1 tick)))]
+       (else
+        (loop q (cdr ls) tick))))))
+
+
+
+(define index-livy1
+   (call-with-input-file "livy.txt"
+    (lambda (input-port)
+     (let loop ((x (read input-port)) (count 0))
+      (if (eof-object? x)
+          '()
+          (cons (list count x)
+            (loop (read input-port) (add1 count))))))))
+
+
+(define index-livy2
+   (call-with-input-file "livy.txt"
+    (lambda (input-port)
+     (let loop ((x (read-char input-port)) (count 0))
+       (cond
+         [(eof-object? x)
+          ""]
+         [(or (= 59 (char->integer x))
+                  (= 39 (char->integer x))
+                  (= 34 (char->integer x)))
+              (loop (read-char input-port) (add1 count))]
+          (else (string-append (string x)
+            (loop (read-char input-port) (add1 count)))))))))
+
+
+(define string-index-help
+   (lambda (char str strpos)
+     (cond
+       [(or (null? str) (> strpos (string-length str))) -1]
+      [(equal? char (string (string-ref str strpos))) strpos]
+       (else
+       (string-index-help
+         char str (add1 strpos))))))
+
+  (define string-index
+   (lambda (char str)
+    (string-index-help char str 0)))
+
+
+(define string-search-livy1
+  (lambda (phrase str)
+    (let loop ([ph phrase] [s str] [p 0])
+      (cond
+       [(or (equal? s "") (equal? ph "") (> (+ p (string-length ph)) (string-length s))) '()]
+       [(equal? (string-downcase ph) (string-downcase (substring s p (+ p (string-length ph)))))
+        (cons (list p) (loop ph s (add1 p)))]
+       (else
+       (loop
+         ph s (add1 p)))))))
+
+
+(define index-livy3
+   (call-with-input-file "livychps1,2.txt"
+    (lambda (input-port)
+     (let loop ((x (read-char input-port)) (sentencecount 1) (chaptercount 0))
+       (cond
+
+         [(eof-object? x)
+          ""]
+
+         [(or (= 34 (char->integer x))
+              (and (>= (char->integer x) 48) (<= (char->integer x) 57))
+              (= 59 (char->integer x))
+              (= 91 (char->integer x)))
+                  (loop (read-char input-port) sentencecount chaptercount)]
+
+         [(= 46 (char->integer x))
+          (string-append
+            ". "
+            (number->string chaptercount)
+            "."
+            (number->string (add1 sentencecount))
+            " "
+            (loop (read-char input-port) (add1 sentencecount) chaptercount))]
+
+         [(= 93 (char->integer x))
+          (let ((sentencecount 1))
+            (string-append
+              ". "
+              (number->string (add1 chaptercount))
+              "."
+              (number->string sentencecount)
+              " "
+              (loop (read-char input-port) sentencecount (add1 chaptercount))))]
+
+          (else (string-append (string x)
+            (loop (read-char input-port) sentencecount chaptercount))))))))
+
+(define sentenceindexsearch
+  (lambda (index chap)
+    (let loop ((i 0) (mem '()))
+      (cond
+        [(null? index) "Query not found"]
+
+        [(number? (substring index i (+ 3 i)))
+          (if (equal? chap (string->number (substring index i (+ 3 i))))
+              (loop (add1 i) (cons i mem)))
+              (loop (add1 i) mem)]
+
+
+
+        [(number? (substring index i (+ 3 i)))
+           (if (equal? chap (- (string->number (substring index i (+ 3 i))) .1))   ;; fix this, but first have it find the right chapter.. the lower bound
+                       (substring index
+                        (car mem)
+                         i)
+                        (loop (add1 i) mem))]
+        (else
+         (loop (add1 i))))))
+
+
+
+
+(define sentenceindexsearch
+  (lambda (index chap)
+    (let loop ((i 0) (mem '()))
+      (cond
+        [(or (null? index) (> (+ 3 i) (string-length index))) "Query not found"]
+
+        [(number? (string->number (substring index i (+ 3 i))))
+
+          (if (equal? chap (string->number (substring index i (+ 3 i))))
+
+              (loop (add1 i) (cons i mem))
+
+              (loop (add1 i) mem))]
+
+        [(number? (string->number (substring index i (+ 3 i))))
+         (if (equal? (+ .1 chap) (string->number (substring index i (+ 3 i))))
+
+                       (substring index
+                        (car mem)
+                         i)
+
+                        (loop (add1 i) mem))]
+        (else
+         (loop (add1 i) mem))))))
+
+
+(define righten
+ (lambda (z)
+  (let ((p (expt 10 3)))
+    (/ (round (* p z)) p))))
+
+(define sentenceindexsearchpartially functional
+  (lambda (index chap)
+    (let loop ((i 0) (mem '()))
+      (cond
+        [(or (null? index) (> (+ 4 i) (string-length index))) "Query not found"]
+
+        [(number? (string->number (substring index i (+ 3 i))))
+
+          (if (equal? chap (string->number (substring index i (+ 3 i))))
+
+             (loop (add1 i) (cons i mem))
+
+          (if (equal? (righten (+ .1 chap)) (righten (string->number (substring index i (+ 3 i)))))
+
+                       (substring index
+                        (car mem)
+                         i)
+
+                     (loop (add1 i) mem)))]
+
+        [(number? (string->number (substring index i (+ 4 i))))
+
+          (if (equal? chap (string->number (substring index i (+ 4 i))))
+
+           (loop (add1 i) (cons i mem))
+
+         (if (equal? (righten (+ .01 chap)) (righten (string->number (substring index i (+ 4 i)))))
+
+                      (substring index
+                       (car mem)
+                        i)
+
+                    (loop (add1 i) mem)))]
+        (else
+         (loop (add1 i) mem))))))
+  |#
+(define Livy1
+   (call-with-input-file "Livy.txt"
+    (lambda (input-port)
+     (let loop ((x (read-char input-port)) (sentencecount 1) (chaptercount 0))
+       (cond
+
+         [(eof-object? x)
+          ""]
+
+         [(or (= 34 (char->integer x))
+              (and (>= (char->integer x) 48) (<= (char->integer x) 57))
+              (= 59 (char->integer x))
+              (= 91 (char->integer x)))
+                  (loop (read-char input-port) sentencecount chaptercount)]
+
+         [(= 46 (char->integer x))
+          (string-append
+            ". "
+            (number->string chaptercount)
+            "."
+            (number->string (add1 sentencecount))
+            " "
+            (loop (read-char input-port) (add1 sentencecount) chaptercount))]
+
+         [(= 93 (char->integer x))
+          (let ((sentencecount 1))
+            (string-append
+              ". "
+              (number->string (add1 chaptercount))
+              "."
+              (number->string sentencecount)
+              " "
+              (loop (read-char input-port) sentencecount (add1 chaptercount))))]
+
+          (else (string-append (string x)
+            (loop (read-char input-port) sentencecount chaptercount))))))))
+
+
+(define sentenceindexsearchfixed
+  (lambda (index s)
+    (let loop ((i 0) (mem '()))
+      (cond
+        [(or (null? index) (> (+ 4 i) (string-length index))) "Query not found"]
+
+        [(equal? (number->string s)(substring index i (+ 3 i)))
+          (loop (add1 i) (cons i mem))]
+
+        [(equal? (number->string s)(substring index i (+ 4 i)))
+         (loop (+ 2 i) (cons i mem))]
+
+        [(and (not (null? mem)) (or (number? (string->number (substring index i (+ 3 i))))
+                                    (number? (string->number (substring index i (+ 4 i))))))
+          (substring index
+                       (car mem)
+                        i)]
+
+        (else
+         (loop (add1 i) mem))))))
+
+
+
+
+(define chaptersearch
+  (lambda (index chap)
+    (let loop ((i 0) (mem '()))
+      (cond
+        [(or (null? index) (> (+ 3 i) (string-length index))) "Query not found"]
+
+        [(number? (string->number (substring index i (+ 3 i))))
+
+          (if (equal? (righten (+ .1 chap)) (string->number (substring index i (+ 3 i))))
+
+             (loop (add1 i) (cons i mem))
+
+          (if (equal? (righten (+ .9 chap)) (righten (string->number (substring index i (+ 3 i)))))
+
+                       (substring index
+                        (car mem)
+                         i)
+
+                        (loop (add1 i) mem)))]
+        (else
+         (loop (add1 i) mem))))))
+
+(define search
+  (lambda (index query)
+    (cond
+      [(integer? query)
+       (chaptersearch index query)]
+      (else (sentenceindexsearchfixed index query)))))

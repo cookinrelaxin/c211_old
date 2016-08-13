@@ -1,0 +1,40 @@
+(define u-add
+  (lambda (ls1 ls2)
+    (if
+      (null? ls1) ls2
+                  (cons 'l (u-add (cdr ls1) ls2)))))
+
+(define u-sub          ;doesnt work with negative numbers (i.e. if ls1 > ls2)
+  (lambda (ls1 ls2)
+    (cond
+      [(and (null? ls1) (not (null? ls2))) '()]
+      [(null? ls2) ls1]
+      (else
+       (u-sub (cdr ls1) (cdr ls2))))))
+
+(define u-mul
+  (lambda (ls1 ls2)
+    (if
+      (or (null? ls1) (null? ls2))
+       '()
+        (let loop ((ls1 ls1) (ls2 ls2))
+          (if
+           (null? ls2)
+              ls2
+              (u-add ls1 (loop ls1 (cdr ls2))))))))
+
+(define u-quo        ;doesnt work with negative numbers (i.e. if ls1 > ls2)
+  (lambda (ls1 ls2)
+    (cond
+       [(equal? ls1 ls2) '(l)]
+       [(null? (u-sub ls1 ls2)) '()]
+       (else
+         (cons 'l (u-quo (u-sub ls1 ls2) ls2))))))
+
+(define u-abs-diff
+  (lambda (ls1 ls2)
+   (cond
+      [(null? ls1) ls2]
+      [(null? ls2) ls1]
+      (else
+        (u-abs-diff (cdr ls1) (cdr ls2))))))
